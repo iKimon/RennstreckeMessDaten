@@ -7,6 +7,8 @@ import android.hardware.SensorManager;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -27,11 +29,29 @@ import java.util.Calendar;
 import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity {
+    EditText edit_Treshold;
     EditText txt_name;
     Button btn_start;
     TextView txtACC;
     TextView txtGyro;
     Spinner spinnerSensorSpeed;
+
+
+    int flag = 0;
+    int rechts = 0;
+    int links = 0;
+    double tres = 0.5;
+
+    double summe;
+    int anzsumme;
+
+    long starttimestamp = 0;
+    long endtimestamp = 0;
+
+    double timesek;
+    double avgdeg;
+
+    String drehung = "gerade";
 
     DecimalFormat decimalFormat;
 
@@ -46,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        edit_Treshold = findViewById(R.id.edit_Treshold);
         btn_start = findViewById(R.id.btn_start);
         txtACC = findViewById(R.id.txtACC);
         txtGyro = findViewById(R.id.txtGyro);
@@ -66,12 +87,6 @@ public class MainActivity extends AppCompatActivity {
         spinnerSensorSpeed.setAdapter(arrayAdapter);
 
 
-        //############################FileWriter############################
-
-        FileWriter fWriter;
-
-
-
 
 
         //############################SensorManager/Listener############################
@@ -87,11 +102,43 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                     case Sensor.TYPE_GYROSCOPE:
+
+                        if(Math.abs(event.values[2]) >= tres){   //treshold bestimmen
+
+                            //summe+=Math.abs(event.values[2]);
+                            //anzsumme++;
+                            if(event.values[2]>0){              // linksdrehung
+                                drehung = "Links";
+                                //if(flag == 0 ) starttimestamp = event.timestamp;
+                                flag=1;
+
+                            }
+                            if(event.values[2]<0) {              // rechtsdrehung
+                                drehung = "Rechts";
+                                // if(flag == 0 ) starttimestamp = event.timestamp;
+                                flag=2;
+                            }
+                        }else{
+                            drehung = "gerade";           // keine drehung
+                            if(flag == 1){                      // linksdrehung beenden
+                                // links++;
+                                // endtimestamp = event.timestamp;
+                                flag =0;
+
+                            }
+                            if(flag == 2){                      // rechtsdrehung beenden
+                                // rechts++;
+                                //endtimestamp = event.timestamp;
+                                flag =0;
+
+                            }
+                        }
                         txtGyro.setText("GYRO:\n" + "X: " + decimalFormat.format(event.values[0])  + "\nY: " + decimalFormat.format(event.values[1]) + "\nZ: " + decimalFormat.format(event.values[2]));
 
-                        gyroList.add("\"" + event.values[0]  + "\";\"" +event.values[1]  + "\";\"" +event.values[2]  + "\"\n");
+                        gyroList.add("\"" + event.values[0]  + "\";\"" +event.values[1]  + "\";\"" +event.values[2]  + "\";\"" + drehung +"\"\n");
 
-                    break;
+                        break;
+
                 }
             }
 
@@ -139,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                         }else {
                             smaler = gyroList.size();
                         }
-                        String bezeichnung = "\"Timestamp\";\"ACCX\";\"ACCY\";\"ACCZ\";\"GYROX\";\"GYROY\";\"GYROZ\";\n";
+                        String bezeichnung = "\"Timestamp\";\"ACCX\";\"ACCY\";\"ACCZ\";\"GYROX\";\"GYROY\";\"GYROZ\";\"Drehung\"\n";
                         fos.write(bezeichnung.getBytes());
                         for(int i=0;i<smaler;i++){
                             fos.write(ACCList.get(i).getBytes());
@@ -161,8 +208,25 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-    }
 
+
+
+
+     edit_Treshold.addTextChangedListener(new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            tres = Double.valueOf(edit_Treshold.getText().toString());
+        }
+    });
+    }
 
     private void registerSensor(SensorEventListener SE){
         sensorManager.unregisterListener(SE);
