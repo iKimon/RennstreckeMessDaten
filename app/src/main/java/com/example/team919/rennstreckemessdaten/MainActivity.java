@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                         j++;
                     }
 
-                    //accX = glaetten(accX, 15);
+                    accX = glaetten(accX, 15);
                     //accY = glaetten(accY, 15);
                     //accZ = glaetten(accZ, 15);
                     //gyroX = glaetten(gyroX, 5);
