@@ -57,6 +57,14 @@ public class MainActivity extends AppCompatActivity {
 
     SensorManager sensorManager;
 
+    LinkedList<Long> timeList = new LinkedList<>();
+    LinkedList<Float> accX = new LinkedList<>();
+    LinkedList<Float> accY = new LinkedList<>();
+    LinkedList<Float> accZ = new LinkedList<>();
+    LinkedList<Float> gyroX = new LinkedList<>();
+    LinkedList<Float> gyroY = new LinkedList<>();
+    LinkedList<Float> gyroZ = new LinkedList<>();
+    LinkedList<String> gyroDrehung = new LinkedList<>();
     LinkedList<String> gyroList = new LinkedList<>();
     LinkedList<String> ACCList = new LinkedList<>();
 
@@ -97,8 +105,12 @@ public class MainActivity extends AppCompatActivity {
                 switch(event.sensor.getType()){
                     case Sensor.TYPE_ACCELEROMETER:
                         txtACC.setText("ACC:\n" + "X: " + decimalFormat.format(event.values[0])  + "\nY: " + decimalFormat.format(event.values[1]) + "\nZ: " + decimalFormat.format(event.values[2]));
+                        //ACCList.add("\""+ Calendar.getInstance().getTime().getTime() + "\";\"" + event.values[0]  + "\";\"" +event.values[1]  + "\";\"" +event.values[2]  + "\";");
+                        timeList.add(Calendar.getInstance().getTime().getTime());
+                        accX.add(event.values[0]);
+                        accY.add(event.values[1]);
+                        accZ.add(event.values[2]);
 
-                        ACCList.add("\""+ Calendar.getInstance().getTime().getTime() + "\";\"" + event.values[0]  + "\";\"" +event.values[1]  + "\";\"" +event.values[2]  + "\";");
                     break;
 
                     case Sensor.TYPE_GYROSCOPE:
@@ -134,8 +146,11 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         txtGyro.setText("GYRO:\n" + "X: " + decimalFormat.format(event.values[0])  + "\nY: " + decimalFormat.format(event.values[1]) + "\nZ: " + decimalFormat.format(event.values[2]));
-
-                        gyroList.add("\"" + event.values[0]  + "\";\"" +event.values[1]  + "\";\"" +event.values[2]  + "\";\"" + drehung +"\"\n");
+                        //gyroList.add("\"" + event.values[0]  + "\";\"" +event.values[1]  + "\";\"" +event.values[2]  + "\";\"" + drehung +"\"\n");
+                        gyroX.add(event.values[0]);
+                        gyroY.add(event.values[1]);
+                        gyroZ.add(event.values[2]);
+                        gyroDrehung.add(drehung);
 
                         break;
 
@@ -165,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                     File dir = new File(Environment.getExternalStorageDirectory(),"Praktikum2");
                     if(!dir.exists()){
                         if(!dir.mkdirs()){
-                            Log.e("Error_wasmanbessersuchenkann", "Can't create Directory");
+                            Log.e("Error", "Can't create Directory");
                         }
                     }
 
@@ -177,15 +192,28 @@ public class MainActivity extends AppCompatActivity {
                         j++;
                     }
 
+                    accX = glaetten(accX, 15);
+                    //accY = glaetten(accY, 15);
+                    //accZ = glaetten(accZ, 15);
+                    //gyroX = glaetten(gyroX, 5);
+                    //gyroY = glaetten(gyroY, 5);
+                    gyroZ = glaetten(gyroZ, 5);
+                    for(int i = 0; i<accX.size(); i++){
+                        ACCList.add("\""+ timeList.get(i) + "\";\"" + accX.get(i)  + "\";\"" + accY.get(i)  + "\";\"" + accZ.get(i)  + "\";");
+                    }
+                    for(int i = 0; i<gyroX.size(); i++){
+                        gyroList.add("\"" + gyroX.get(i)  + "\";\"" + gyroY.get(i)  + "\";\"" + gyroZ.get(i)  + "\";\"" + gyroDrehung.get(i) +"\"\n");
+                    }
+
+                    int smaler;
+                    if(ACCList.size()<gyroList.size()){
+                        smaler =ACCList.size();
+                    }else {
+                        smaler = gyroList.size();
+                    }
+
                     try{
                         FileOutputStream fos = new FileOutputStream(file,false);
-                        Log.e("Error_wasmanbessersuchenkann", Integer.toString(ACCList.size()) +" --------" +Integer.toString(gyroList.size()));
-                        int smaler;
-                        if(ACCList.size()<gyroList.size()){
-                            smaler =ACCList.size();
-                        }else {
-                            smaler = gyroList.size();
-                        }
                         String bezeichnung = "\"Timestamp\";\"ACCX\";\"ACCY\";\"ACCZ\";\"GYROX\";\"GYROY\";\"GYROZ\";\"Drehung\"\n";
                         fos.write(bezeichnung.getBytes());
                         for(int i=0;i<smaler;i++){
@@ -202,6 +230,17 @@ public class MainActivity extends AppCompatActivity {
                         e2.printStackTrace();
                         Log.e("Error", "IOException");
                     }
+
+                    ACCList.clear();
+                    gyroList.clear();
+                    timeList.clear();
+                    accX.clear();
+                    accY.clear();
+                    accZ.clear();
+                    gyroX.clear();
+                    gyroY.clear();
+                    gyroZ.clear();
+                    gyroDrehung.clear();
 
 
                 }
@@ -233,6 +272,19 @@ public class MainActivity extends AppCompatActivity {
         sensorManager.registerListener(SE,sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),spinnerSensorSpeed.getSelectedItemPosition());
         sensorManager.registerListener(SE,sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),spinnerSensorSpeed.getSelectedItemPosition());
 
+    }
+
+    private LinkedList<Float> glaetten(LinkedList<Float> linkedList, int range){
+        float temp = 0;
+        if((range%2) != 1) range++;
+        for(int i = ((range-1)/2); i < linkedList.size()-((range-1)/2); i++){
+            for(int j = 0-(range-1)/2; j<= (range-1)/2; j++){
+                temp += linkedList.get(i+j);
+            }
+            linkedList.set(i, temp/range);
+            temp = 0;
+        }
+        return linkedList;
     }
 
 }
