@@ -115,42 +115,12 @@ public class MainActivity extends AppCompatActivity {
 
                     case Sensor.TYPE_GYROSCOPE:
 
-                        if(Math.abs(event.values[2]) >= tres){   //treshold bestimmen
-
-                            //summe+=Math.abs(event.values[2]);
-                            //anzsumme++;
-                            if(event.values[2]>0){              // linksdrehung
-                                drehung = "Links";
-                                //if(flag == 0 ) starttimestamp = event.timestamp;
-                                flag=1;
-
-                            }
-                            if(event.values[2]<0) {              // rechtsdrehung
-                                drehung = "Rechts";
-                                // if(flag == 0 ) starttimestamp = event.timestamp;
-                                flag=2;
-                            }
-                        }else{
-                            drehung = "gerade";           // keine drehung
-                            if(flag == 1){                      // linksdrehung beenden
-                                // links++;
-                                // endtimestamp = event.timestamp;
-                                flag =0;
-
-                            }
-                            if(flag == 2){                      // rechtsdrehung beenden
-                                // rechts++;
-                                //endtimestamp = event.timestamp;
-                                flag =0;
-
-                            }
-                        }
                         txtGyro.setText("GYRO:\n" + "X: " + decimalFormat.format(event.values[0])  + "\nY: " + decimalFormat.format(event.values[1]) + "\nZ: " + decimalFormat.format(event.values[2]));
                         //gyroList.add("\"" + event.values[0]  + "\";\"" +event.values[1]  + "\";\"" +event.values[2]  + "\";\"" + drehung +"\"\n");
                         gyroX.add(event.values[0]);
                         gyroY.add(event.values[1]);
                         gyroZ.add(event.values[2]);
-                        gyroDrehung.add(drehung);
+                        gyroDrehung.add(klassifizieren(event.values[2]));
 
                         break;
 
@@ -287,4 +257,13 @@ public class MainActivity extends AppCompatActivity {
         return linkedList;
     }
 
+    private String klassifizieren(float GyroZ){
+        //Hier kommt der Entscheidungsbaum rein:-------------------------
+
+
+
+    return "gerade";
+    }
 }
+
+
